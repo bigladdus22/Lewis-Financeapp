@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  frontend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Syntax-check JavaScript
+        run: |
+          for f in assets/app.js config.js; do
+            cp "$f" "/tmp/$(basename $f .js).mjs"
+            node --check "/tmp/$(basename $f .js).mjs"
+            echo "OK: $f"
+          done
+
+      - name: Check required files exist
+        run: |
+          test -f index.html
+          test -f assets/styles.css
+          test -f supabase/config.toml
+          ls supabase/migrations/*.sql
+          echo "Repo structure OK"
+
+  edge-function-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Type-check edge functions
+        run: |
+          deno check supabase/functions/public-api/index.ts
+          deno check supabase/functions/generate-signal/index.ts

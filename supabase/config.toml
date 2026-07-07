@@ -1,0 +1,8 @@
+# Supabase CLI configuration
+project_id = "ogvhprlgugrpzrocmqft"
+
+[functions.public-api]
+verify_jwt = false
+
+[functions.generate-signal]
+verify_jwt = true

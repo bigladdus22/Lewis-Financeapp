@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SignalDesk</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+
+<!-- ============ SIGN IN / CREATE ACCOUNT ============ -->
+<div id="screen-auth" class="gate">
+  <div class="gate-box">
+    <div class="wordmark">▮ SIGNALDESK</div>
+    <h1 id="authTitle">Sign in</h1>
+    <p class="sub">AI market signals for authorised users only.</p>
+    <div class="card pad">
+      <div class="switch">
+        <button id="modeIn" aria-pressed="true">Sign in</button>
+        <button id="modeUp" aria-pressed="false">Create account</button>
+      </div>
+      <label class="label" for="email">Email</label>
+      <input id="email" class="field" type="email" autocomplete="email" placeholder="you@company.com" />
+      <label class="label" for="pw">Password</label>
+      <input id="pw" class="field" type="password" autocomplete="current-password" placeholder="••••••••" />
+      <p id="authErr" class="err" hidden></p>
+      <p id="authInfo" class="info" hidden></p>
+      <div style="margin-top:18px;"><button class="btn" id="authGo" style="width:100%;">Sign in</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PAYWALL ============ -->
+<div id="screen-pay" class="gate" hidden>
+  <div class="gate-box">
+    <div class="wordmark">▮ SIGNALDESK</div>
+    <h1>Unlock your account</h1>
+    <p class="sub" id="paySub">A one-time access fee activates your signals.</p>
+    <div class="card pad">
+      <div class="payline">
+        <span>Account access — one time</span>
+        <span class="mono price">£0.01</span>
+      </div>
+      <label class="label" for="cardno">Card number</label>
+      <input id="cardno" class="field" value="4242 4242 4242 4242" />
+      <div class="two">
+        <div><label class="label" for="exp">Expiry</label><input id="exp" class="field" value="12/28" /></div>
+        <div><label class="label" for="cvc">CVC</label><input id="cvc" class="field" value="123" /></div>
+      </div>
+      <p id="payErr" class="err" hidden></p>
+      <div style="margin-top:18px;"><button class="btn" id="payGo" style="width:100%;">Pay £0.01 and unlock</button></div>
+      <div style="margin-top:10px;"><button class="btn-quiet" id="payOut" style="width:100%;">Sign out</button></div>
+      <p class="note" style="margin-top:16px;">
+        Demo checkout — activation is real, the card is not charged. Production swaps this
+        for Stripe Checkout (GBP minimum £0.30) with a webhook marking the account paid.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="screen-app" hidden>
+  <div class="topbar">
+    <span class="wordmark small">▮ SIGNALDESK</span>
+    <span class="mono meta"><span id="whoami"></span> · <span class="paid">paid ✓</span> · <a href="#" id="signout">sign out</a></span>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab tag" role="tab" aria-selected="true"  data-tab="analyse">Analyse</button>
+    <button class="tab tag" role="tab" aria-selected="false" data-tab="history">History</button>
+    <button class="tab tag" role="tab" aria-selected="false" data-tab="api">API Access</button>
+  </div>
+
+  <div class="wrap">
+    <!-- ANALYSE -->
+    <div id="panel-analyse">
+      <div class="card pad">
+        <div class="row-between">
+          <div>
+            <div class="h2">Analyse a ticker</div>
+            <p class="sub2">Live price history from Yahoo Finance, scored by the signal model.</p>
+          </div>
+        </div>
+        <div class="analyse-bar">
+          <input id="ticker" class="field" placeholder="Ticker — AAPL, NVDA, BP.L…" aria-label="Ticker symbol" />
+          <button class="btn" id="genBtn">Generate signal</button>
+        </div>
+        <div class="chips" id="chips"></div>
+        <p id="genErr" class="err" hidden></p>
+        <div id="sigOut" style="margin-top:16px;">
+          <div class="empty"><div class="empty-title">No signal yet</div>
+            <div class="empty-sub">Enter a ticker and generate — the result is stored to your account and served on your API.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="panel-history" hidden>
+      <div class="card" style="overflow:hidden;">
+        <div class="row-between pad-h">
+          <div>
+            <div class="h2">Signal history</div>
+            <p class="sub2">Everything stored on your account, newest first.</p>
+          </div>
+          <select id="histFilter" class="field slim">
+            <option value="all">All signals</option><option value="buy">Buy only</option>
+            <option value="sell">Sell only</option><option value="hold">Hold only</option>
+          </select>
+        </div>
+        <div id="histBody"><div class="empty inset">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- API ACCESS -->
+    <div id="panel-api" hidden>
+      <div class="card pad">
+        <div class="h2">API access</div>
+        <p class="sub2" style="margin-bottom:16px;">Mint a key to pull your signals from anywhere. Keys are stored hashed and rate-limited to 30 requests/minute.</p>
+        <div class="analyse-bar">
+          <input id="keyName" class="field" placeholder="Key name — e.g. my-website" aria-label="Key name" />
+          <button class="btn" id="createKey">Create key</button>
+        </div>
+        <p id="keyErr" class="err" hidden></p>
+        <div id="reveal" class="reveal fade" hidden>
+          <div class="reveal-title" id="revealTitle"></div>
+          <p class="reveal-sub">This is the only time the full key is shown — it's stored hashed on our side.</p>
+          <div class="reveal-row">
+            <code class="mono" id="revealKey"></code>
+            <button class="btn-quiet" id="revealCopy">Copy</button>
+            <button class="btn-quiet" id="revealDone">Done</button>
+          </div>
+        </div>
+        <div id="keyList" style="margin-top:20px;"><div class="empty inset">Loading…</div></div>
+      </div>
+
+      <div class="card pad" style="margin-top:16px;">
+        <div class="row-between">
+          <div>
+            <div class="h2">Quickstart</div>
+            <p class="sub2" id="quickHint"></p>
+          </div>
+          <div class="range" id="langTabs"></div>
+        </div>
+        <div style="position:relative; margin-top:12px;">
+          <pre class="code" id="snippet"></pre>
+          <button class="btn-quiet snip" id="snipCopy">Copy</button>
+        </div>
+        <div class="row-gap" style="margin-top:12px;">
+          <button class="btn" id="testBtn" disabled>Send test request</button>
+          <span id="testHint" class="sub2">Create a key first — the live test uses the key you just revealed.</span>
+        </div>
+        <div id="testResult" class="fade" style="margin-top:12px;" hidden>
+          <div class="tag" style="margin-bottom:6px;">Response · <span id="testStatus"></span></div>
+          <pre class="code green" id="testJson"></pre>
+        </div>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:20px;">
+      Signals are AI-generated from public market data — for demonstration only, not investment advice.
+      Market data via Yahoo Finance unofficial endpoints; not licensed for commercial use.
+    </p>
+  </div>
+</div>
+
+<script type="module" src="assets/app.js"></script>
+</body>
+</html>

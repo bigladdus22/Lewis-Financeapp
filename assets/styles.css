@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg:#0C0E14; --panel:#12151F; --panel2:#171B28; --line:#232838; --line2:#2C3247;
+  --accent:#8B8DFF; --accent-deep:#5A5DE8; --accent-soft:rgba(139,141,255,.12);
+  --text:#E7E9F2; --muted:#8A91A6; --faint:#5A6178;
+  --buy:#43C583; --sell:#F26D65; --hold:#E5A83B;
+  --buy-soft:rgba(67,197,131,.12); --sell-soft:rgba(242,109,101,.12); --hold-soft:rgba(229,168,59,.12);
+}
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+body { margin:0; background:var(--bg); color:var(--text); font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+.mono { font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+button { cursor:pointer; font-family:inherit; }
+input, select { font-family:'IBM Plex Mono',monospace; }
+input:focus-visible, button:focus-visible, select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+a { color:var(--accent); text-decoration:none; }
+
+.card { background:var(--panel); border:1px solid var(--line); border-radius:12px; }
+.pad { padding:22px; }
+.pad-h { padding:16px 14px 12px; }
+.btn { background:var(--accent-deep); color:#fff; border:none; border-radius:8px; padding:11px 18px; font-size:13px; font-weight:600; }
+.btn:hover { background:#6E71FF; }
+.btn:disabled { background:#2E3150; color:#7A7FA8; cursor:default; }
+.btn-quiet { background:none; border:1px solid var(--line2); border-radius:8px; padding:8px 13px; font-size:12px; color:var(--muted); font-weight:500; }
+.btn-quiet:hover { border-color:var(--accent); color:var(--text); }
+.btn-danger { color:var(--sell); border-color:rgba(242,109,101,.4); }
+.field { border:1px solid var(--line2); background:var(--panel2); color:var(--text); border-radius:8px; padding:11px 12px; font-size:13px; width:100%; }
+.field::placeholder { color:var(--faint); }
+.field.slim { width:auto; padding:8px 10px; font-size:12px; }
+.tag { font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-family:'IBM Plex Mono',monospace; }
+.label { display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:14px 0 6px; font-family:'IBM Plex Mono',monospace; }
+.err { color:var(--sell); font-size:12px; margin:10px 0 0; }
+.info { color:var(--buy); font-size:12px; margin:10px 0 0; }
+.note { color:var(--faint); font-size:11px; line-height:1.65; font-family:'IBM Plex Mono',monospace; }
+.h2 { font-size:15px; font-weight:700; }
+.sub2 { font-size:12px; color:var(--muted); margin:3px 0 0; }
+.fade { animation:fade .28s ease-out; }
+@keyframes fade { from { opacity:0; transform:translateY(5px);} to { opacity:1; transform:none;} }
+@keyframes pulse { 0%,100% { opacity:.45; } 50% { opacity:1; } }
+.thinking { animation:pulse 1.1s ease-in-out infinite; }
+@media (prefers-reduced-motion:reduce){ .fade,.thinking { animation:none; } }
+
+/* gates */
+.gate { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+.gate-box { width:100%; max-width:400px; }
+.wordmark { font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:.28em; color:var(--accent); font-weight:600; }
+.wordmark.small { font-size:12px; }
+.gate h1 { font-size:26px; font-weight:800; margin:8px 0 4px; letter-spacing:-.01em; }
+.gate .sub { color:var(--muted); font-size:13px; margin:0 0 18px; }
+.gate .card { margin-top:0; }
+.switch { display:flex; gap:8px; margin-bottom:4px; }
+.switch button { flex:1; padding:9px 0; border-radius:8px; font-size:13px; font-weight:600; border:1px solid var(--line2); background:none; color:var(--muted); }
+.switch button[aria-pressed="true"] { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+.payline { display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding-bottom:14px; font-size:14px; }
+.price { font-size:22px; color:var(--accent); font-weight:600; }
+.two { display:flex; gap:10px; }
+.two > div { flex:1; }
+
+/* app chrome */
+.topbar { display:flex; justify-content:space-between; align-items:center; padding:13px 22px; border-bottom:1px solid var(--line); background:var(--panel); }
+.meta { font-size:12px; color:var(--muted); }
+.paid { color:var(--buy); }
+.tabs { display:flex; gap:28px; justify-content:center; border-bottom:1px solid var(--line); background:var(--panel); }
+.tab { padding:14px 2px; border:none; background:none; border-bottom:2px solid transparent; color:var(--muted); }
+.tab[aria-selected="true"] { border-bottom-color:var(--accent); color:var(--text); }
+.wrap { max-width:820px; margin:24px auto 70px; padding:0 16px; }
+.row-between { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.row-gap { display:flex; gap:10px; align-items:center; }
+
+/* analyse */
+.analyse-bar { display:flex; gap:10px; margin-top:14px; }
+.chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+.chips button { background:none; border:1px solid var(--line2); color:var(--muted); border-radius:99px; padding:5px 12px; font-size:12px; font-family:'IBM Plex Mono',monospace; }
+.chips button:hover { border-color:var(--accent); color:var(--accent); }
+.pill { display:inline-block; padding:5px 12px; border-radius:99px; font-size:12px; font-weight:700; letter-spacing:.08em; font-family:'IBM Plex Mono',monospace; }
+.pill.buy { background:var(--buy-soft); color:var(--buy); }
+.pill.sell { background:var(--sell-soft); color:var(--sell); }
+.pill.hold { background:var(--hold-soft); color:var(--hold); }
+.pill.mini { padding:3px 10px; font-size:11px; }
+.confbar { height:6px; background:var(--panel2); border-radius:3px; overflow:hidden; }
+.confbar > span { display:block; height:100%; background:var(--accent); border-radius:3px; transition:width .6s ease; }
+.sigcard { border:1px solid var(--line); border-radius:10px; padding:16px; }
+.axis { display:flex; justify-content:space-between; margin-top:4px; font-size:11px; color:var(--faint); }
+
+/* history */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); }
+td { padding:11px 14px; border-bottom:1px solid var(--line); }
+tr:last-child td { border-bottom:none; }
+
+/* api */
+pre.code { background:#0A0C12; border:1px solid var(--line); color:#DDE1F0; border-radius:10px; padding:16px 14px; font-size:12.5px; line-height:1.65; overflow-x:auto; margin:0; font-family:'IBM Plex Mono',monospace; }
+pre.code.green { color:#9FE8C3; font-size:12px; }
+.snip { position:absolute; top:10px; right:10px; padding:4px 10px; }
+.range { display:flex; gap:6px; }
+.range button { padding:6px 12px; border-radius:7px; font-size:12px; border:1px solid var(--line2); background:none; color:var(--muted); font-family:'IBM Plex Mono',monospace; }
+.range button[aria-pressed="true"] { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+.meter { width:90px; height:4px; background:var(--panel2); border-radius:2px; overflow:hidden; display:inline-block; vertical-align:middle; }
+.meter > span { display:block; height:100%; background:var(--accent); }
+.reveal { border:1px solid rgba(67,197,131,.4); background:var(--buy-soft); border-radius:10px; padding:14px; margin-top:14px; }
+.reveal-title { font-size:13px; font-weight:600; color:var(--buy); }
+.reveal-sub { font-size:12px; color:var(--muted); margin:4px 0 10px; }
+.reveal-row { display:flex; gap:8px; align-items:center; }
+.reveal-row code { flex:1; background:var(--panel2); border:1px solid var(--line2); border-radius:7px; padding:8px 10px; font-size:12px; overflow-wrap:anywhere; }
+.keyrow { border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-top:8px; }
+.keymeta { display:flex; gap:18px; margin-top:8px; align-items:center; flex-wrap:wrap; font-size:11px; color:var(--muted); }
+.empty { border:1px dashed var(--line2); border-radius:10px; padding:22px 14px; text-align:center; }
+.empty.inset { margin:0 14px 16px; }
+.empty-title { font-size:13px; font-weight:600; }
+.empty-sub { font-size:12px; color:var(--muted); margin-top:3px; }
