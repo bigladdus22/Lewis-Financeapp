@@ -14,18 +14,17 @@ async function sha256Hex(input: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+const cors = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "x-api-key, content-type",
+  "access-control-allow-methods": "GET, POST, OPTIONS",
+};
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      "content-type": "application/json",
-      "access-control-allow-origin": "*",
-      "access-control-allow-headers": "x-api-key, content-type",
-    },
-  });
+  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...cors } });
+const preflight = () => new Response(null, { status: 204, headers: cors });
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return json(null, 204);
+  if (req.method === "OPTIONS") return preflight();
 
   const apiKey = req.headers.get("x-api-key");
   if (!apiKey?.startsWith("fd_")) return json({ error: "Missing or malformed x-api-key header." }, 401);

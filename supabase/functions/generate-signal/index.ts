@@ -5,10 +5,12 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const cors = {
   "access-control-allow-origin": "*",
-  "access-control-allow-headers": "authorization, content-type",
+  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
+  "access-control-allow-methods": "POST, OPTIONS",
 };
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...cors } });
+const preflight = () => new Response(null, { status: 204, headers: cors });
 
 const RATIONALE: Record<string, (s: string) => string> = {
   buy: (s) => `${s} is trading above its recent trend with improving momentum. Model favours accumulation at current levels.`,
@@ -17,7 +19,7 @@ const RATIONALE: Record<string, (s: string) => string> = {
 };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return json(null, 204);
+  if (req.method === "OPTIONS") return preflight();
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,

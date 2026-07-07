@@ -44,9 +44,20 @@ function setAuthMode(m) {
   $("authTitle").textContent = m === "signin" ? "Sign in" : "Create your account";
   $("authGo").textContent = m === "signin" ? "Sign in" : "Continue — access fee applies";
   hideErr("authErr"); $("authInfo").hidden = true;
+  $("credStep").hidden = false; $("otpStep").hidden = true;
 }
 $("modeIn").onclick = () => setAuthMode("signin");
 $("modeUp").onclick = () => setAuthMode("signup");
+
+function showOtpStep(email, message) {
+  state.pendingEmail = email;
+  $("credStep").hidden = true;
+  $("otpStep").hidden = false;
+  $("otpSub").textContent = message;
+  $("otp").value = "";
+  $("otp").focus();
+  hideErr("authErr"); $("authInfo").hidden = true;
+}
 
 $("authGo").onclick = async () => {
   const email = $("email").value.trim();
@@ -56,16 +67,21 @@ $("authGo").onclick = async () => {
   try {
     if (state.authMode === "signin") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return showErr("authErr", error.message);
+      if (error) {
+        if (error.message.toLowerCase().includes("not confirmed")) {
+          await supabase.auth.resend({ type: "signup", email });
+          showOtpStep(email, `Your email isn't confirmed yet. We've sent a fresh code to ${email}.`);
+          return;
+        }
+        return showErr("authErr", error.message);
+      }
       await route();
     } else {
       if (password.length < 8) return showErr("authErr", "Password needs at least 8 characters.");
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) return showErr("authErr", error.message);
       if (!data.session) {
-        $("authInfo").textContent = "Almost there — check your email for a confirmation link, then sign in.";
-        $("authInfo").hidden = false;
-        setAuthMode("signin");
+        showOtpStep(email, `We've emailed a 6-digit code to ${email}. Enter it below to confirm your account.`);
         return;
       }
       await route(); // email confirmation disabled → straight to paywall
@@ -75,6 +91,28 @@ $("authGo").onclick = async () => {
   }
 };
 $("pw").addEventListener("keydown", (e) => { if (e.key === "Enter") $("authGo").click(); });
+
+$("verifyGo").onclick = async () => {
+  const token = $("otp").value.trim();
+  hideErr("authErr");
+  if (!/^\d{6}$/.test(token)) return showErr("authErr", "Enter the 6-digit code from the email.");
+  $("verifyGo").disabled = true;
+  const { error } = await supabase.auth.verifyOtp({ email: state.pendingEmail, token, type: "email" });
+  $("verifyGo").disabled = false;
+  if (error) return showErr("authErr", "That code didn't work — it may have expired. Try resending.");
+  await route(); // confirmed and signed in → paywall or app
+};
+$("otp").addEventListener("keydown", (e) => { if (e.key === "Enter") $("verifyGo").click(); });
+
+$("resendCode").onclick = async (e) => {
+  e.preventDefault();
+  hideErr("authErr");
+  const { error } = await supabase.auth.resend({ type: "signup", email: state.pendingEmail });
+  if (error) return showErr("authErr", "Couldn't resend just yet — wait a minute and try again.");
+  $("authInfo").textContent = `New code sent to ${state.pendingEmail}.`;
+  $("authInfo").hidden = false;
+};
+$("otpBack").onclick = (e) => { e.preventDefault(); setAuthMode(state.authMode); };
 
 const signOut = async (e) => { e?.preventDefault(); await supabase.auth.signOut(); show("auth"); };
 $("signout").onclick = signOut;
