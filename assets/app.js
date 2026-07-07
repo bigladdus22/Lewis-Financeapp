@@ -143,57 +143,125 @@ function setTab(name) {
 /* ---------------- analyse ---------------- */
 const SUGGESTED = ["AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "HSBA.L", "AZN.L", "BP.L", "SHEL.L"];
 $("chips").innerHTML = SUGGESTED.map((s) => `<button data-t="${s}">${s}</button>`).join("");
-document.querySelectorAll("#chips button").forEach((b) => (b.onclick = () => { $("ticker").value = b.dataset.t; $("genBtn").click(); }));
-$("ticker").addEventListener("keydown", (e) => { if (e.key === "Enter") $("genBtn").click(); });
+document.querySelectorAll("#chips button").forEach((b) => (b.onclick = () => { $("ticker").value = b.dataset.t; runAnalysis(true); }));
+$("ticker").addEventListener("keydown", (e) => { if (e.key === "Enter") runAnalysis(true); });
+$("genBtn").onclick = () => runAnalysis(true);
 
-function chartSVG(closes, currency) {
-  const W = 760, H = 220, pad = 6;
-  const min = Math.min(...closes), max = Math.max(...closes), span = max - min || 1;
-  const x = (i) => pad + (i * (W - 2 * pad)) / (closes.length - 1);
-  const y = (v) => H - pad - ((v - min) * (H - 2 * pad)) / span;
-  let path = "";
-  closes.forEach((c, i) => (path += (i ? "L" : "M") + x(i).toFixed(1) + " " + y(c).toFixed(1) + " "));
-  const up = closes[closes.length - 1] >= closes[0];
-  const col = up ? "#43C583" : "#F26D65";
-  return `<svg width="100%" height="220" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="3 month price history">
-    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${col}" stop-opacity=".22"/><stop offset="100%" stop-color="${col}" stop-opacity="0"/>
-    </linearGradient></defs>
-    <path d="${path} L ${x(closes.length - 1)} ${H} L ${x(0)} ${H} Z" fill="url(#g)"/>
-    <path d="${path}" fill="none" stroke="${col}" stroke-width="2"/></svg>
-    <div class="axis mono"><span>${currency || ""} ${min.toFixed(2)} low · 3 months</span><span>${currency || ""} ${max.toFixed(2)} high</span></div>`;
+state.range = "3M";
+state.ccy = "";
+state.lastTicker = null;
+
+document.querySelectorAll("#rangeTabs button").forEach((b) => (b.onclick = () => {
+  state.range = b.dataset.range;
+  document.querySelectorAll("#rangeTabs button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  if (state.lastTicker) runAnalysis(false); // recompute view, no new history row
+}));
+$("ccySel").onchange = () => {
+  state.ccy = $("ccySel").value;
+  if (state.lastTicker) runAnalysis(false);
+};
+
+const CCY_SYMBOL = { GBP: "£", USD: "$", EUR: "€", JPY: "¥" };
+const sym = (c) => CCY_SYMBOL[c] || (c ? c + " " : "");
+
+function smaLocal(a, n) {
+  return a.map((_, i) => (i < n - 1 ? null : a.slice(i - n + 1, i + 1).reduce((s, x) => s + x, 0) / n));
 }
 
-$("genBtn").onclick = async () => {
-  const ticker = $("ticker").value.trim().toUpperCase();
+function chartSVG(closes, currency, stamps) {
+  const W = 760, H = 240, padL = 56, padR = 8, padT = 8, padB = 20;
+  const min = Math.min(...closes), max = Math.max(...closes), span = max - min || 1;
+  const x = (i) => padL + (i * (W - padL - padR)) / (closes.length - 1);
+  const y = (v) => padT + (H - padT - padB) - ((v - min) * (H - padT - padB)) / span;
+  const dp = max < 10 ? 3 : max < 100 ? 2 : max < 10000 ? 1 : 0;
+
+  // horizontal price gridlines with labels
+  const TICKS = 4;
+  let grid = "";
+  for (let t = 0; t <= TICKS; t++) {
+    const v = min + (span * t) / TICKS;
+    grid += `<line x1="${padL}" y1="${y(v)}" x2="${W - padR}" y2="${y(v)}" stroke="#1B2032" stroke-width="1"/>
+      <text x="${padL - 8}" y="${y(v) + 4}" text-anchor="end" fill="#5A6178" font-size="10" font-family="IBM Plex Mono">${sym(currency)}${v.toFixed(dp)}</text>`;
+  }
+
+  const linePath = (arr) => {
+    let d = "", started = false;
+    arr.forEach((v, i) => { if (v == null) return; d += (started ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1) + " "; started = true; });
+    return d;
+  };
+
+  const pricePath = linePath(closes);
+  const up = closes[closes.length - 1] >= closes[0];
+  const col = up ? "#43C583" : "#F26D65";
+  const s20 = smaLocal(closes, 20), s50 = smaLocal(closes, 50);
+  const overlays =
+    (closes.length >= 20 ? `<path d="${linePath(s20)}" fill="none" stroke="#8B8DFF" stroke-width="1.4" stroke-dasharray="5 4" opacity=".9"/>` : "") +
+    (closes.length >= 50 ? `<path d="${linePath(s50)}" fill="none" stroke="#E5A83B" stroke-width="1.4" stroke-dasharray="2 4" opacity=".85"/>` : "");
+
+  // x-axis date labels: start, middle, end
+  const dateLbl = (ts) => new Date(ts * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const xTicks = [0, Math.floor(closes.length / 2), closes.length - 1]
+    .map((i) => `<text x="${x(i)}" y="${H - 4}" text-anchor="${i === 0 ? "start" : i === closes.length - 1 ? "end" : "middle"}" fill="#5A6178" font-size="10" font-family="IBM Plex Mono">${stamps?.[i] ? dateLbl(stamps[i]) : ""}</text>`)
+    .join("");
+
+  return `<svg width="100%" height="240" viewBox="0 0 ${W} ${H}" role="img" aria-label="Price history chart with moving averages">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${col}" stop-opacity=".18"/><stop offset="100%" stop-color="${col}" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${grid}
+    <path d="${pricePath} L ${x(closes.length - 1)} ${H - padB} L ${x(0)} ${H - padB} Z" fill="url(#g)"/>
+    <path d="${pricePath}" fill="none" stroke="${col}" stroke-width="2"/>
+    ${overlays}
+    ${xTicks}</svg>
+    <div class="legend mono">
+      <span><i style="background:${col};"></i>Price</span>
+      ${closes.length >= 20 ? '<span><i style="background:#8B8DFF;"></i>SMA 20</span>' : ""}
+      ${closes.length >= 50 ? '<span><i style="background:#E5A83B;"></i>SMA 50</span>' : ""}
+    </div>`;
+}
+
+async function runAnalysis(store) {
+  const ticker = store ? $("ticker").value.trim().toUpperCase() : state.lastTicker;
   hideErr("genErr");
   if (!ticker) return showErr("genErr", "Enter a ticker first — e.g. AAPL or BP.L.");
   const btn = $("genBtn");
-  btn.disabled = true; btn.textContent = "Analysing…";
-  $("sigOut").innerHTML = `<div class="empty thinking"><div class="mono empty-sub">Fetching price history · scoring momentum…</div></div>`;
-  const { data, error } = await supabase.functions.invoke("generate-signal", { body: { ticker } });
+  btn.disabled = true; btn.textContent = store ? "Analysing…" : "Updating…";
+  if (store) $("sigOut").innerHTML = `<div class="empty thinking"><div class="mono empty-sub">Fetching price history · running indicator ensemble…</div></div>`;
+
+  const { data, error } = await supabase.functions.invoke("generate-signal", {
+    body: { ticker, range: state.range, currency: state.ccy, store },
+  });
   btn.disabled = false; btn.textContent = "Generate signal";
   if (error || data?.error) {
     $("sigOut").innerHTML = `<div class="empty"><div class="empty-title">Couldn't generate a signal</div><div class="empty-sub">${data?.error || error.message}</div></div>`;
     return;
   }
+  state.lastTicker = data.ticker;
+
   const conf = Math.round(data.confidence * 100);
+  const fxNote = data.fx_rate !== 1 ? ` · FX ${data.fx_rate.toFixed(4)}` : "";
+  const indHtml = (data.indicators || [])
+    .map((i) => `<div class="ind"><div class="ind-name">${i.name}</div>
+      <div class="ind-val mono">${i.value} <span class="ind-verdict ${i.verdict}">${i.verdict}</span></div></div>`)
+    .join("");
+
   $("sigOut").innerHTML = `
     <div class="sigcard fade">
       <div class="row-between">
         <span class="pill ${data.signal}">${data.signal.toUpperCase()}</span>
         <span class="mono" style="font-size:11px; color:var(--faint);">
-          ${new Date(data.generated_at).toLocaleTimeString("en-GB")} · ${data.ticker}
-          · last ${data.currency || ""} ${data.last_close}${data.source === "simulated" ? " · simulated data" : ""}</span>
+          ${new Date(data.generated_at).toLocaleTimeString("en-GB")} · ${data.ticker} · ${data.range}
+          · last ${sym(data.currency)}${data.last_close.toFixed(2)}${fxNote}${data.source === "simulated" ? " · simulated data" : ""}${data.stored ? "" : " · view only, not stored"}</span>
       </div>
       <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
         <div class="confbar" style="flex:1;"><span style="width:${conf}%;"></span></div>
         <span class="mono" style="font-size:12px; color:var(--muted);">confidence ${conf}%</span>
       </div>
       <p style="font-size:13px; color:var(--muted); line-height:1.6; margin:12px 0 14px;">${data.rationale}</p>
-      <div id="chartBox">${data.closes?.length ? chartSVG(data.closes, data.currency) : ""}</div>
+      <div class="indgrid">${indHtml}</div>
+      <div id="chartBox" style="margin-top:14px;">${data.closes?.length ? chartSVG(data.closes, data.currency, data.timestamps) : ""}</div>
     </div>`;
-};
+}
 
 /* ---------------- history ---------------- */
 $("histFilter").onchange = renderHistory;

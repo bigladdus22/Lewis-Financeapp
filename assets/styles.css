@@ -109,3 +109,15 @@ pre.code.green { color:#9FE8C3; font-size:12px; }
 .empty.inset { margin:0 14px 16px; }
 .empty-title { font-size:13px; font-weight:600; }
 .empty-sub { font-size:12px; color:var(--muted); margin-top:3px; }
+
+/* indicator breakdown + chart legend (analysis v2) */
+.indgrid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; }
+.ind { border:1px solid var(--line); border-radius:8px; padding:9px 11px; background:var(--panel2); }
+.ind-name { font-size:11px; color:var(--muted); }
+.ind-val { font-size:13px; margin-top:3px; display:flex; justify-content:space-between; align-items:baseline; gap:6px; }
+.ind-verdict { font-size:10px; letter-spacing:.08em; text-transform:uppercase; }
+.ind-verdict.bullish { color:var(--buy); }
+.ind-verdict.bearish { color:var(--sell); }
+.ind-verdict.neutral { color:var(--faint); }
+.legend { display:flex; gap:16px; margin-top:8px; font-size:11px; color:var(--muted); }
+.legend i { display:inline-block; width:14px; height:2px; vertical-align:middle; margin-right:5px; border-radius:1px; }
