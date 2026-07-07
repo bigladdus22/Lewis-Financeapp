@@ -15,17 +15,31 @@
     <h1 id="authTitle">Sign in</h1>
     <p class="sub">AI market signals for authorised users only.</p>
     <div class="card pad">
-      <div class="switch">
-        <button id="modeIn" aria-pressed="true">Sign in</button>
-        <button id="modeUp" aria-pressed="false">Create account</button>
+      <div id="credStep">
+        <div class="switch">
+          <button id="modeIn" aria-pressed="true">Sign in</button>
+          <button id="modeUp" aria-pressed="false">Create account</button>
+        </div>
+        <label class="label" for="email">Email</label>
+        <input id="email" class="field" type="email" autocomplete="email" placeholder="you@company.com" />
+        <label class="label" for="pw">Password</label>
+        <input id="pw" class="field" type="password" autocomplete="current-password" placeholder="••••••••" />
+        <div style="margin-top:18px;"><button class="btn" id="authGo" style="width:100%;">Sign in</button></div>
       </div>
-      <label class="label" for="email">Email</label>
-      <input id="email" class="field" type="email" autocomplete="email" placeholder="you@company.com" />
-      <label class="label" for="pw">Password</label>
-      <input id="pw" class="field" type="password" autocomplete="current-password" placeholder="••••••••" />
+      <div id="otpStep" hidden>
+        <div class="h2">Check your email</div>
+        <p class="sub2" id="otpSub"></p>
+        <label class="label" for="otp">6-digit code</label>
+        <input id="otp" class="field" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+               placeholder="••••••" style="letter-spacing:8px; font-size:18px; text-align:center;" />
+        <div style="margin-top:18px;"><button class="btn" id="verifyGo" style="width:100%;">Verify and continue</button></div>
+        <div style="display:flex; justify-content:space-between; margin-top:12px;">
+          <a href="#" id="resendCode" style="font-size:12px;">Resend code</a>
+          <a href="#" id="otpBack" style="font-size:12px; color:var(--muted);">Use a different email</a>
+        </div>
+      </div>
       <p id="authErr" class="err" hidden></p>
       <p id="authInfo" class="info" hidden></p>
-      <div style="margin-top:18px;"><button class="btn" id="authGo" style="width:100%;">Sign in</button></div>
     </div>
   </div>
 </div>
