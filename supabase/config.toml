@@ -1,6 +1,19 @@
 # Supabase CLI configuration
 project_id = "ogvhprlgugrpzrocmqft"
 
+[auth]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+# Do NOT require an emailed confirmation code to sign in. The built-in email
+# service is rate-limited to a few messages per hour, so requiring OTP
+# confirmation blocked every user after the first from authenticating. New
+# accounts are also auto-confirmed at the database level (see migration
+# 20260708100000_signaldesk_auto_confirm_users.sql). To re-enable confirmation
+# for production, configure custom SMTP under Auth > Emails first.
+enable_confirmations = false
+
 [functions.public-api]
 verify_jwt = false
 

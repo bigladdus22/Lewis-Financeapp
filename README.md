@@ -31,9 +31,12 @@ npx serve .        # or: python3 -m http.server 8000
 
 Open the printed URL, create an account, pay the demo fee, generate signals.
 
-> Supabase's default auth settings require email confirmation on sign-up. For quick
-> testing, disable it under **Authentication → Sign In / Up → Confirm email** in the
-> Supabase dashboard, or use a real inbox.
+> Email confirmation is **disabled** on sign-up (`enable_confirmations = false` in
+> `supabase/config.toml`) and new accounts are auto-confirmed at the database level.
+> Supabase's built-in email service is rate-limited to a few messages per hour, so
+> requiring an emailed OTP blocked every user after the first from signing in. To run
+> a confirmed-email flow in production, configure **custom SMTP** under
+> **Authentication → Emails** first, then re-enable confirmation.
 
 ## GitHub setup (one time)
 

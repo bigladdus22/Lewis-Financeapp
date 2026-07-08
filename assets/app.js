@@ -80,11 +80,14 @@ $("authGo").onclick = async () => {
       if (password.length < 8) return showErr("authErr", "Password needs at least 8 characters.");
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) return showErr("authErr", error.message);
-      if (!data.session) {
-        showOtpStep(email, `We've emailed a 6-digit code to ${email}. Enter it below to confirm your account.`);
-        return;
-      }
-      await route(); // email confirmation disabled → straight to paywall
+      if (data.session) return await route(); // confirmation off → straight to paywall
+      // No session means the server still wants email confirmation. New accounts
+      // are auto-confirmed at the database level, so a password sign-in works
+      // right away and doesn't depend on a (rate-limited) confirmation email.
+      const { error: signinErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (!signinErr) return await route();
+      // Only fall back to the emailed code if a direct sign-in is genuinely blocked.
+      showOtpStep(email, `We've emailed a 6-digit code to ${email}. Enter it below to confirm your account.`);
     }
   } finally {
     $("authGo").disabled = false;
@@ -97,7 +100,7 @@ $("verifyGo").onclick = async () => {
   hideErr("authErr");
   if (!/^\d{6}$/.test(token)) return showErr("authErr", "Enter the 6-digit code from the email.");
   $("verifyGo").disabled = true;
-  const { error } = await supabase.auth.verifyOtp({ email: state.pendingEmail, token, type: "email" });
+  const { error } = await supabase.auth.verifyOtp({ email: state.pendingEmail, token, type: "signup" });
   $("verifyGo").disabled = false;
   if (error) return showErr("authErr", "That code didn't work — it may have expired. Try resending.");
   await route(); // confirmed and signed in → paywall or app
