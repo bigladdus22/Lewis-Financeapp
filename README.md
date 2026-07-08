@@ -1,4 +1,4 @@
-# SignalDesk
+# tradingbot.ai
 
 AI market signals for authorised, paying users. Static frontend + Supabase backend
 (auth, Postgres with row-level security, edge functions), deployed via GitHub Actions.
@@ -42,9 +42,9 @@ Open the printed URL, create an account, pay the demo fee, generate signals.
 
 1. Create a repo and push:
    ```bash
-   git init && git add -A && git commit -m "SignalDesk v1"
+   git init && git add -A && git commit -m "tradingbot.ai v1"
    git branch -M main
-   git remote add origin git@github.com:YOU/signaldesk.git
+   git remote add origin git@github.com:YOU/tradingbot-ai.git
    git push -u origin main
    ```
 2. **Settings → Pages** → Source: *GitHub Actions*. The `deploy-pages.yml` workflow

@@ -1,4 +1,4 @@
-// SignalDesk public-api: validates x-api-key, rate-limits 30/min, returns the key owner's signals
+// tradingbot.ai public-api: validates x-api-key, rate-limits 30/min, returns the key owner's signals
 // Deployed with verify_jwt = false (custom API-key auth below).
 import { createClient } from "npm:@supabase/supabase-js@2";
 

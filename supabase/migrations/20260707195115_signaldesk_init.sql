@@ -1,4 +1,4 @@
--- SignalDesk initial schema: profiles, api_keys, usage, signals, RLS, helpers
+-- tradingbot.ai initial schema: profiles, api_keys, usage, signals, RLS, helpers
 -- (already applied to production ogvhprlgugrpzrocmqft; tracked here for CI/CD)
 
 create extension if not exists pgcrypto;

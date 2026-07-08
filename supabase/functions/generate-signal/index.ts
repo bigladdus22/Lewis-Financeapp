@@ -1,4 +1,4 @@
-// SignalDesk generate-signal v2: multi-indicator quantitative ensemble.
+// tradingbot.ai generate-signal v2: multi-indicator quantitative ensemble.
 // Indicators: momentum, RSI(14), MACD(12/26/9), SMA20/50 trend, annualised volatility.
 // Supports range (1M/3M/6M/1Y) and display-currency conversion via live FX.
 // store=false recomputes without writing a new history row (used when switching range/currency).
